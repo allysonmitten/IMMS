@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- FIREBASE -->
+    <script src='https://cdn.firebase.com/js/client/2.2.1/firebase.js'></script>
+    <!-- JQUERY -->
+    <script src='https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js'></script>
+    <!--BOOTSTRAP-->
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.3.1/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.3.1/css/bootstrap-responsive.min.css" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <script src="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.3.1/js/bootstrap-modal.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
+    <!-- CSS -->
+    <link rel='stylesheet' type='text/css' href='/css/style2.css'>
+  </head>
+  
+  <body>
+    <div class="container">
+      <div class="container2">
+        <div class="container3">
+          <div class="col-xs-2 visit">
+             <img src="immslogo.png">
+              <h2>Users</h>
+              <div id="namesDiv"></div>
+            </center>
+          </div>
+          <div class="col-xs-1"></div>
+          <div class="col-xs-10">
+              <div class="row-xs-8">
+                <div id='messagesDiv' class="messages"> </div>
+              </div>
+          <div class="row-xs-2">
+            <input type='text' id='messageInput' class="inputBox" placeholder='Message'>
+            <button type="button" class ="btn" onClick=logout()>Logout</button>
+          </div>
+        </div>
+      </div>
+      </div>
+    </div>
+   
+    
+
+
+
+
+
+    <!-- javascript modal -->
+      <div class="modal fade" id="auth-modal">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title text-center">Authenticate</h4>
+      </div>
+      <div class="modal-body text-center">
+        <div class="row">
+          <div class="col-md-3"></div>
+          <!-- twitter -->
+          <div class="col-md-3">
+            <a id="twitter-signin" href="javascript:login('twitter');">
+              <i id="twitter-signin-btn" class="fa fa-twitter-square fa-5x"></i>
+              <p>Twitter</p>
+            </a>
+          </div>
+          <!-- Facebook -->
+          <div class="col-md-3">
+              <a id="facebook-signing" href="javascript:login('facebook');">
+              <i id="facebook-signin-btn" class="fa fa-facebook-square fa-5x"></i>
+              <p>Facebook</p>
+            </a>
+          </div>
+          <!--<div class="col-md-3"></div> -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary">Save changes</button>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+    <script>
+      var myDataRef = new Firebase('https://imms.firebaseio.com/');
+      var name="";
+      var authModal = $('#auth-modal').modal( {show: false }); //we don't want it to show right away
+
+      //create callback which logs current auth state
+      // Create a callback which logs the current auth state
+      var authData = myDataRef.getAuth();
+
+      if (authData){
+        var userId = authData.uid;
+        name = authData[authData.provider].displayName;
+        console.log("The user is already logged in");
+      }
+
+      function login(provider){
+              console.log("login with ", provider);
+              authModal.modal('hide');
+              myDataRef.authWithOAuthPopup(provider, function(error, authData) {
+              if (error) {
+                console.log("Login Failed!", error);
+              } else {
+                console.log("Authenticated successfully with payload:", authData);
+                //console.log("User " + authData.uid + " is logged in with " + authData.provider);
+                var userId = authData.uid;
+                name = authData[authData.provider].displayName;
+                myDataRef.child('user').child(userId).once("value", function(snapshot){
+                  var ifExists = snapshot.exists(); //firebase function
+                  if (ifExists) {
+                    console.log('user is already in the system');
+                  } else { 
+                    myDataRef.child('user').child(userId).push({id: userId, name:name});
+                  }
+                })
+              }
+            });
+          }
+      myDataRef.child('user').on('value', function(snapshot){
+        var allNames = snapshot.val();
+        console.log(allNames);
+        for (var u in allNames) {
+          for (var i in allNames[u]) {
+              console.log(allNames[u][i].name);
+              displayNamesUser(allNames[u][i].name)
+          }
+        }
+      })
+
+      function displayNamesUser(username){
+        $('<div/>').text(username).appendTo($('#namesDiv')); 
+      }
+
+
+      $('#messageInput').keypress(function (e) {
+        if (e.keyCode == 13) {
+          //check to make sure there is a username
+          if(!name){
+            authModal.modal('show');
+          } else { //don't submit unless there is a username
+            //var name = $('#nameInput').val();
+            var text = $('#messageInput').val();
+            myDataRef.child('messages').push({name: name, text: text});
+            $('#messageInput').val('');
+          }
+        }
+      });
+
+      function logout(){
+        console.log("logging out");
+        myDataRef.unauth();
+        location.reload();
+      }
+
+      myDataRef.child('messages').on('child_added', function(snapshot) {
+        var message = snapshot.val();
+        //console.log(message);
+        displayChatMessage(message.name, message.text);
+      });
+
+      function displayChatMessage(name, text) {
+        $('<div/>').text(text).prepend($('<em/>').text(name+': ')).appendTo($('#messagesDiv'));
+        $('#messagesDiv')[0].scrollTop = $('#messagesDiv')[0].scrollHeight;
+      };
+    </script>
+  </body>
+</html>

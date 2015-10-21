@@ -1,0 +1,99 @@
+@font-face {
+    font-family: 'ailerons';
+    src:url('../fonts/Ailerons.tff');
+}
+
+@font-face {
+  font-family: 'Lato';
+  src:  url('../fonts/Lato-Regular.ttf');
+}
+@font-face {
+	font-family: 'Dense';
+	src: url('../fonts/Dense-Regular.otf');
+}
+.visit {
+
+	background-color: #e9eadc;
+	height: 435px;
+	color: #47006f;
+}
+.inputBox {
+	width: 90%;
+	height: 300px;
+}
+.messages {
+	height: 390px; 
+	/*background-color: #2D2D2D; */
+	/*padding-left: 3px; */
+	/*padding-right: 3px; */
+	color: #ffffff !important;
+	font-family: Lato;
+
+}
+.modal {
+	position: relative !important;
+	margin-left: 30% !important;
+	right-padding: 100px;
+	margin-top: -400px !important;
+	background-color: #111111;
+	width: 50% !important;
+}
+
+body {
+	background-color: #000000;
+} 
+h2 {
+	text-align: left;
+	font-family: Ailerons;
+}
+.container {
+	border: 3px solid #111111;
+	margin: auto;
+	border-radius: 25px 25px 25px 25px;
+}
+.container2 {
+	background-color: #222222;
+	position: relative;
+	border: 3px solid #d3d3d3;
+	margin: auto;
+	border-radius: 25px 25px 25px 25px;
+}
+.container3 {
+	background-color: #333333;
+	position: relative;
+	height: 450px;
+	padding: 5px;
+	margin: auto;
+	border-radius: 25px 25px 25px 25px;
+}
+.col-xs-2 {
+	background-color: #444444;
+	height: 100%;
+	border-radius: 25px 0px 0px 25px;
+	padding-right: 5px;
+	color: #ffffff;
+	font-family: Dense;
+}
+.col-xs-10 {
+	background-color: #111111;
+	height: 85%;
+	border-radius: 0px 25px 0px 0px;
+}
+/* .col-xs-1 {
+	height: 100%;
+	background-color: #333333;
+	position: inline;
+	width: 2px;*/
+}
+#messagesDiv {
+	height: 100%;
+	background-color: #555555;
+}
+#namesDiv {
+	color: #999999 !important;
+	font-size: 50%;
+	text-align: left;
+}
+#name {
+	color: #ff3399 !important;
+}
