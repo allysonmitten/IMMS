@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- FIREBASE -->
+    <script src='https://cdn.firebase.com/js/client/2.2.1/firebase.js'></script>
+    <!-- JQUERY -->
+    <script src='https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js'></script>
+    <!--BOOTSTRAP-->
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.3.1/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.3.1/css/bootstrap-responsive.min.css" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <script src="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.3.1/js/bootstrap-modal.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
+    <!-- CSS -->
+    <link rel='stylesheet' type='text/css' href='/css/style2.css'>
+  </head>
+  
+  <body>
+    <br>
+    <div>
+      <!-- Columns at top of chat -->
+      <div class="col-xs-1"></div>
+      <div class="col-xs-1"></div>
+      <div class="col-xs-1"></div>
+      <div class="col-xs-1"></div>
+      <div class="col-xs-1"></div>
+      <div class="col-xs-1"></div>
+      <div class="col-xs-1"></div>
+      <div class="col-xs-1"></div>
+      <div class="col-xs-1"></div>
+      <div class="col-xs-1"></div>
+      <!-- Logout button -->
+      <div class="col-xs-1"><button type="button" class ="btn-custom" onClick=logout()>Logout</button></div>
+      <div class="col-xs-1"></div>
+   </div> 
+  <br>
+  <br>
+    <div class="container">
+      <div class="container2">
+        <div class="container3"> <!-- Contains user container and message container -->
+          <div class="col-xs-2 visit"> <!-- User Container -->
+            <div class="row-xs-1">
+              <img src="immslogo.png"></img>
+            </div>    
+            <div class="row-xs-2">
+              <h2>online</h2>
+            </div>
+            <div class="row-xs-4">
+                <center>
+                 <div id="namesDiv"></div>
+                <i id="icon" class=""></i>
+             </center>
+            </div>
+            <div class="row-xs-2">
+              <h2>offline</h2>
+            </div>
+            <div class="row-xs-3">
+               <div id="unloggedDiv"></div>
+            </div>
+          </div> <!-- end of user container -->
+
+          <!--message container -->
+          <div class="col-xs-10"> 
+            <div class="row-xs-9">
+              <div id='messagesDiv' class="messages"> </div>
+            </div>
+            <div class="row-xs-1"><BR></div>
+            <div class="row-xs-1">
+               <input type='text' id='messageInput' class="inputBox" placeholder='Message'>
+            </div>
+            <div class="row-xs-1"><br></div>
+          </div><!-- End of Message container -->
+        </div> <!-- End of container 3 -->
+      </div> <!-- end of container 2 -->
+    </div> <!-- end of container 1 -->
+  
+    <!-- JAVASCRIPT MODAL-->
+    <div class="modal fade" id="auth-modal">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+           <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title text-center">Authenticate</h4>
+          </div>
+          <div class="modal-body text-center">
+            <div class="row">
+              <div class="col-md-3"></div>
+              <!-- Twitter -->
+              <div class="col-md-3">
+                <a id="twitter-signin" href="javascript:login('twitter');">
+                  <i id="twitter-signin-btn" class="fa fa-twitter-square fa-5x"></i>
+                  <p>Twitter</p>
+                </a>
+              </div>
+              <!-- Facebook -->
+              <div class="col-md-3">
+                <a id="facebook-signing" href="javascript:login('facebook');">
+                  <i id="facebook-signin-btn" class="fa fa-facebook-square fa-5x"></i>
+                  <p>Facebook</p>
+                </a>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary">Save changes</button>
+          </div>
+        </div>  <!-- End of Modal Content -->
+      </div> 
+    </div>
+    <!-- End of Modal -->
+
+
+    <script>
+      var myDataRef = new Firebase('https://imms.firebaseio.com/');
+      var name="";
+      var authModal = $('#auth-modal').modal( {show: false }); //we don't want it to show right away
+      var user_Id = 0;
+
+      //create callback which logs current auth state
+      // Create a callback which logs the current auth state
+      var authData = myDataRef.getAuth();
+
+      if (authData){
+        var userId = authData.uid;
+        name = authData[authData.provider].displayName;
+        console.log("The user is already logged in");
+      }
+
+      function login(provider){
+              console.log("login with ", provider);
+              var provider = provider;
+              authModal.modal('hide');
+              myDataRef.authWithOAuthPopup(provider, function(error, authData) {
+              if (error) {
+                console.log("Login Failed!", error);
+              } else {
+                console.log("Authenticated successfully with payload:", authData);
+                //console.log("User " + authData.uid + " is logged in with " + authData.provider);
+                var userId = authData.uid;
+                name = authData[authData.provider].displayName;
+                profileImage= authData[authData.provider].profileImageURL;
+                console.log(profileImage);
+                console.log(' the ', provider);
+                
+                myDataRef.child('user').child(userId).once("value", function(snapshot){
+                  var ifExists = snapshot.exists(); //firebase function
+                  if (ifExists) {
+                    //myDataRef.child('user').child(userId).update({logged:true});
+                    myDataRef.child('user').child(userId).once("value" , function (snapshot){
+                    fbUser = snapshot.val();
+                    for (key in fbUser) {
+                      myDataRef.child('user').child(userId).child(key).update({logged:true, provider:provider});
+                    }
+                  });
+                    console.log('user is already in the system');
+                  } else {
+                    myDataRef.child('user').child(userId).push({id: userId, name:name , logged:true, provider: provider});
+                  }
+                  user_Id = userId;
+                })
+              }
+            });
+          }
+      myDataRef.child('user').on('value', function(snapshot){
+        var allNames = snapshot.val();
+        console.log(allNames);
+        //prevent multiple usernames
+        $("#namesDiv").html("");
+        $('#unloggedDiv').html("");
+        for (var u in allNames) {
+          for (var i in allNames[u]) {
+              console.log(allNames[u][i].name, allNames[u][i].id);
+              displayNamesUser(allNames[u][i]);
+          }
+        }
+      })
+
+      function displayNamesUser(user){
+        console.log('test', user.provider);
+        //$("#namesDiv").empty();
+        if (user.logged == true &&  user.provider == "twitter") {
+          console.log('we have a user wiht both twitter and logged in');
+          $('#icon').addClass('fa fa-twitter-square');
+            $('<div/>').text(user.name).appendTo($('#namesDiv'));
+       } else if(user.logged == true &&  user.provider == "facebook") {
+          $('#icon').addClass('fa fa-facebook-square');
+            $('<div/>').text(user.name).appendTo($('#namesDiv'));
+       } else {
+        $('<div/>').text(user.name).appendTo($('#unloggedDiv'));
+       }
+      }
+
+      $('#messageInput').keypress(function (e) {
+        if (e.keyCode == 13) {
+          //check to make sure there is a username
+          if(!name){
+            authModal.modal('show');
+          } else { //don't submit unless there is a username
+            //var name = $('#nameInput').val();
+            var text = $('#messageInput').val();
+            myDataRef.child('messages').push({name: name, text: text});
+            $('#messageInput').val('');
+          }
+        }
+      });
+
+      function logout(){
+        console.log("logging out");
+        myDataRef.unauth();
+        myDataRef.child('user').child(user_Id).once("value" , function (snapshot){
+          fbUser = snapshot.val();
+          for (key in fbUser) {
+            myDataRef.child('user').child(user_Id).child(key).update({logged:false});
+          }
+        });
+        //$("#namesDiv").remove();
+        location.reload();
+        //$('<div/>').text(username).remove($('#namesDiv'));
+      }
+
+      myDataRef.child('messages').on('child_added', function(snapshot) {
+        var message = snapshot.val();
+        //console.log(message);
+        displayChatMessage(message.name, message.text);
+      });
+
+      function displayChatMessage(name, text) {
+        $('<div/>').text(text).prepend($('<em/>').text(name+': ')).appendTo($('#messagesDiv'));
+        $('#messagesDiv')[0].scrollTop = $('#messagesDiv')[0].scrollHeight;
+      };
+
+
+    </script>
+  </body>
+</html>
